@@ -52,17 +52,30 @@ npm start
 
 > **Важно для мобильного PWA и микрофона:** в продакшене (вне `localhost`) браузеры разрешают работу Service Worker и доступ к микрофону только по протоколу **HTTPS**.
 
+## Скачать на телефон прямо с GitHub
+
+В репозитории подготовлены два способа установки без запуска собственного сервера:
+
+1. **Единый автономный файл (`downloads/SpeakEasy-English-Offline.html`)**
+   - Откройте файл [`downloads/SpeakEasy-English-Offline.html`](downloads/SpeakEasy-English-Offline.html) на GitHub и нажмите **Download raw file**.
+   - Откройте скачанный файл в браузере на телефоне (Chrome на Android или через «Файлы» / браузер на iPhone) — все уроки, диалоги, 50 карточек словаря, тесты и встроенный офлайн-разговорник работают внутри одного файла без интернета.
+   - Для пересборки файла локально используйте: `npm run build:portable`.
+
+2. **Готовый `.apk` для Android (автоматически через GitHub Actions)**
+   - После загрузки проекта на GitHub перейдите во вкладку **Actions** → **Build Android APK & Portable App** → последний запуск → **Artifacts** → скачайте **`SpeakEasy-English-Mobile`** (внутри лежит готовый установочный файл **`SpeakEasy-English.apk`**).
+   - Либо создайте тег версии (`git tag v1.0.0 && git push origin v1.0.0`) — `.apk` автоматически прикрепится в раздел **Releases** вашего репозитория.
+
 ## Полезные команды
 
 - `npm run lint` — проверка типов TypeScript (`tsc --noEmit`)
 - `npm run build` — сборка клиентского бандла и PWA Service Worker в `dist/`
+- `npm run build:portable` — сборка единого автономного файла `downloads/SpeakEasy-English-Offline.html`
 - `npm run generate-icons` — перегенерация PNG-иконок из `public/icon.svg`
-- `npm run clean` — очистка сборочных папок (`dist/`, `dev-dist/`)
+- `npm run clean` — очистка сборочных папок (`dist/`, `dev-dist/`, `.portable-tmp/`)
 
 ## Как отправить проект на GitHub
 
 ```bash
-git init
 git add .
 git commit -m "Initial commit: SpeakEasy English PWA"
 git branch -M main

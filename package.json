@@ -11,8 +11,9 @@
     "dev": "tsx server.ts",
     "start": "node server.ts",
     "build": "vite build",
+    "build:portable": "node scripts/build-portable.mjs",
     "preview": "vite preview",
-    "clean": "rm -rf dist dev-dist server.js",
+    "clean": "rm -rf dist dev-dist .portable-tmp server.js",
     "lint": "tsc --noEmit",
     "generate-icons": "node scripts/generate-icons.js"
   },

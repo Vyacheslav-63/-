@@ -3,7 +3,11 @@ import {registerSW} from 'virtual:pwa-register';
 import App from './App.tsx';
 import './index.css';
 
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+if (
+  typeof window !== 'undefined' &&
+  'serviceWorker' in navigator &&
+  window.location.protocol.startsWith('http')
+) {
   registerSW({
     immediate: true,
     onRegisterError(error) {

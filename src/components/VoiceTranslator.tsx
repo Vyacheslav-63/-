@@ -76,6 +76,8 @@ function getSupportedAudioMimeType(): string {
 export const VoiceTranslator: React.FC = () => {
   const { state, addXP, addCustomFlashcard } = useProgress();
   const isOnline = useOnlineStatus();
+  const isFileProtocol =
+    typeof window !== 'undefined' && window.location.protocol === 'file:';
 
   const [direction, setDirection] = useState<DirectionMode>('auto');
   const [inputText, setInputText] = useState('');
@@ -214,7 +216,7 @@ export const VoiceTranslator: React.FC = () => {
     setErrorMsg(null);
     setOfflineSuggestions([]);
 
-    if (!isOnline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+    if (isFileProtocol || !isOnline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
       tryOfflineTranslate(trimmed, effectiveDir);
       return;
     }
@@ -231,6 +233,12 @@ export const VoiceTranslator: React.FC = () => {
           direction: effectiveDir,
         }),
       });
+
+      const contentType = res.headers.get('content-type') || '';
+      if (res.status === 404 || res.status === 405 || !contentType.includes('application/json')) {
+        tryOfflineTranslate(trimmed, effectiveDir);
+        return;
+      }
 
       const data = await res.json();
       if (!res.ok) {
@@ -579,11 +587,11 @@ export const VoiceTranslator: React.FC = () => {
             } else if (event.error === 'no-speech') {
               sfx.playError();
               setErrorMsg('Не удалось расслышать речь. Попробуйте сказать чуть громче и ближе к микрофону.');
-            } else if (!isOnline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+            } else if (isFileProtocol || !isOnline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
               sfx.playError();
               setOfflineSuggestions(getOfflineQuickSuggestions(4));
               setErrorMsg(
-                'Голосовой ввод недоступен без интернета. Введите фразу текстом или выберите из офлайн-разговорника ниже.'
+                'Голосовой ввод недоступен в автономном режиме. Введите фразу текстом или выберите из офлайн-разговорника ниже.'
               );
             } else {
               startMediaRecorder(dirHint);
@@ -619,11 +627,11 @@ export const VoiceTranslator: React.FC = () => {
       }
     }
 
-    if (!isOnline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+    if (isFileProtocol || !isOnline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
       sfx.playError();
       setOfflineSuggestions(getOfflineQuickSuggestions(4));
       setErrorMsg(
-        'Распознавание живой речи с микрофона требует интернет. Без сети пользуйтесь текстовым вводом и быстрыми фразами ниже.'
+        'Распознавание живой речи с микрофона требует интернет. В автономном режиме пользуйтесь текстовым вводом и быстрыми фразами ниже.'
       );
       return;
     }

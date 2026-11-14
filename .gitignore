@@ -13,5 +13,7 @@ Thumbs.db
 !.env.example
 .vscode/
 .idea/
+.portable-tmp/
+android/
 public/assets/aistudio/
 
