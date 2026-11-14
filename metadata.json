@@ -1,0 +1,6 @@
+{
+  "name": "SpeakEasy English — Разговорный английский с нуля",
+  "description": "Интерактивный игровой тренажер английского языка для русскоговорящих: шаблоны живой речи, ситуативные диалоги, тесты, прогрессия и система закрепления знаний.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

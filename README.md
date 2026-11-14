@@ -1,11 +1,71 @@
-<div align="center">
+# SpeakEasy English — Разговорный английский (PWA)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Интерактивный игровой тренажёр английского языка, созданный специально для русскоязычных пользователей, плюс двусторонний голосовой переводчик **RU ⇄ EN** и поддержка установки как мобильного приложения (PWA) на Android и iOS.
 
-  <h1>Built with AI Studio</h2>
+## Возможности
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- **Дорожная карта и шаблоны речи:** готовые разговорные конструкции с кириллической фонетикой и подсказками.
+- **Симулятор диалогов:** практические сценарии (кафе, аэропорт, знакомство, магазин и др.) с озвучиванием фраз.
+- **Тренировки и тесты:** сборка фраз, аудирование и быстрые проверки понимания.
+- **Интервальное повторение:** личный словарь карточек для закрепления сложных слов и фраз.
+- **Прогрессия и напоминания:** XP, серия дней (streak), таблица лидеров, достижения и ежедневные уведомления.
+- **Голосовой переводчик RU ⇄ EN:** распознавание русской и английской речи, перевод через Gemini API на сервере, кириллическая транскрипция `[...]` и добавление фраз в словарь.
+- **PWA для Android и iOS:** офлайн-кэш интерфейса, иконки и подсказка установки на главный экран.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Стек
 
-</div>
+- **Frontend:** React 19, TypeScript, Tailwind CSS v4, Vite, `vite-plugin-pwa`, Lucide Icons, Motion
+- **Backend:** Express, Node.js >= 22 (нативный запуск `server.ts`), `@google/genai`
+
+## Требования и локальный запуск
+
+1. Установите **Node.js 22+** (`node -v`).
+2. Установите зависимости:
+
+```bash
+npm install
+```
+
+3. Создайте файл `.env` на основе `.env.example` и укажите ваш ключ Gemini API:
+
+```bash
+cp .env.example .env
+```
+
+```env
+GEMINI_API_KEY="ВАШ_КЛЮЧ_GEMINI"
+PORT="3000"
+```
+
+4. Запустите сервер разработки (Express + Vite на порту `3000`):
+
+```bash
+npm run dev
+```
+
+## Сборка и запуск в production
+
+```bash
+npm run build
+npm start
+```
+
+> **Важно для мобильного PWA и микрофона:** в продакшене (вне `localhost`) браузеры разрешают работу Service Worker и доступ к микрофону только по протоколу **HTTPS**.
+
+## Полезные команды
+
+- `npm run lint` — проверка типов TypeScript (`tsc --noEmit`)
+- `npm run build` — сборка клиентского бандла и PWA Service Worker в `dist/`
+- `npm run generate-icons` — перегенерация PNG-иконок из `public/icon.svg`
+- `npm run clean` — очистка сборочных папок (`dist/`, `dev-dist/`)
+
+## Как отправить проект на GitHub
+
+```bash
+git init
+git add .
+git commit -m "Initial commit: SpeakEasy English PWA"
+git branch -M main
+git remote add origin https://github.com/<ваш-логин>/<имя-репозитория>.git
+git push -u origin main
+```

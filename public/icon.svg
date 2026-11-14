@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#047857" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="128" fill="url(#emeraldGrad)" />
+
+  <!-- Speech bubble group -->
+  <g filter="url(#shadow)">
+    <!-- Main white speech bubble -->
+    <path d="M136 144 C 136 120, 154 104, 180 104 L 332 104 C 358 104, 376 120, 376 144 L 376 272 C 376 296, 358 312, 332 312 L 232 312 L 168 368 L 168 312 L 156 312 C 144 312, 136 304, 136 292 Z" fill="#FFFFFF" />
+
+    <!-- Text SE (SpeakEasy) in speech bubble -->
+    <text x="256" y="235" font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', Inter, sans-serif" font-weight="900" font-size="96" fill="#047857" text-anchor="middle" letter-spacing="-2">SE</text>
+  </g>
+
+  <!-- Flame spark badge on the top right -->
+  <circle cx="376" cy="136" r="48" fill="url(#amberGrad)" stroke="#FFFFFF" stroke-width="8" />
+  <path d="M376 108 C 382 122, 396 132, 396 148 C 396 161, 386 172, 376 172 C 366 172, 356 161, 356 148 C 356 136, 366 124, 376 108 Z" fill="#FFFFFF" />
+</svg>

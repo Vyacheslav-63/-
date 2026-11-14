@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@layer utilities {
+  /* Tactile Gamified Buttons */
+  .btn-tactile-primary {
+    background-color: #10B981;
+    color: #ffffff;
+    border-bottom: 4px solid #047857;
+    transition: all 0.1s ease-in-out;
+    user-select: none;
+  }
+  .btn-tactile-primary:hover:not(:disabled) {
+    background-color: #059669;
+  }
+  .btn-tactile-primary:active:not(:disabled) {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+  .btn-tactile-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-bottom-width: 2px;
+  }
+
+  .btn-tactile-secondary {
+    background-color: #4F46E5;
+    color: #ffffff;
+    border-bottom: 4px solid #3730A3;
+    transition: all 0.1s ease-in-out;
+    user-select: none;
+  }
+  .btn-tactile-secondary:hover:not(:disabled) {
+    background-color: #4338CA;
+  }
+  .btn-tactile-secondary:active:not(:disabled) {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+  .btn-tactile-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-tactile-amber {
+    background-color: #F59E0B;
+    color: #ffffff;
+    border-bottom: 4px solid #B45309;
+    transition: all 0.1s ease-in-out;
+    user-select: none;
+  }
+  .btn-tactile-amber:hover:not(:disabled) {
+    background-color: #D97706;
+  }
+  .btn-tactile-amber:active:not(:disabled) {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+
+  .btn-tactile-neutral {
+    background-color: #ffffff;
+    color: #1E293B;
+    border: 2px solid #E2E8F0;
+    border-bottom: 4px solid #CBD5E1;
+    transition: all 0.1s ease-in-out;
+    user-select: none;
+  }
+  .btn-tactile-neutral:hover:not(:disabled) {
+    background-color: #F8FAFC;
+    border-color: #CBD5E1;
+    border-bottom-color: #94A3B8;
+  }
+  .btn-tactile-neutral:active:not(:disabled) {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+
+  .btn-tactile-danger {
+    background-color: #EF4444;
+    color: #ffffff;
+    border-bottom: 4px solid #B91C1C;
+    transition: all 0.1s ease-in-out;
+    user-select: none;
+  }
+  .btn-tactile-danger:hover:not(:disabled) {
+    background-color: #DC2626;
+  }
+  .btn-tactile-danger:active:not(:disabled) {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+}
+
+/* Custom scrollbar for clean edtech feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
