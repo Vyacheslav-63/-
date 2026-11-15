@@ -92,12 +92,21 @@ export interface QuizQuestion {
   category: string;
 }
 
+export interface DictionaryLevelMeta {
+  level: number;
+  titleRu: string;
+  subtitleRu: string;
+  icon: string;
+}
+
 export interface FlashcardItem {
   id: string;
   phraseEn: string;
   phraseRu: string;
   phoneticRu: string;
   contextRu: string;
+  dictLevel?: number; // 1 to 10 themed dictionary level
+  topicRu?: string;
   box: number; // 1 to 5 for Leitner box
   nextReview: number; // timestamp
   timesReviewed: number;

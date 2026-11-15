@@ -98,7 +98,13 @@ function AppContent() {
       <BottomNav
         activeTab={activeTab}
         onChangeTab={setActiveTab}
-        dueCardsCount={state.flashcards.filter((c) => c.box === 1).length}
+        dueCardsCount={
+          state.flashcards.filter(
+            (c) =>
+              (!c.dictLevel || c.dictLevel <= state.unlockedDictLevel) &&
+              !state.masteredDictCardIds.includes(c.id)
+          ).length
+        }
       />
     </div>
   );

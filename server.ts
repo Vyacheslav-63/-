@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import type { Request, Response } from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type, ThinkingLevel } from '@google/genai';
 
@@ -200,6 +201,16 @@ async function startServer() {
       fastLite: fastLiteSupported,
       fastLiteCooldownMs: Math.max(0, fastLiteCooldownUntil - Date.now()),
     });
+  });
+
+  // Direct download of standalone offline portable HTML file
+  app.get('/download/SpeakEasy-English-Offline.html', (_req: Request, res: Response) => {
+    const filePath = path.resolve(__dirname, 'downloads/SpeakEasy-English-Offline.html');
+    if (!fs.existsSync(filePath)) {
+      res.status(404).send('Offline bundle not found. Run npm run build:portable first.');
+      return;
+    }
+    res.download(filePath, 'SpeakEasy-English-Offline.html');
   });
 
   // Text translation endpoint (RU <-> EN)

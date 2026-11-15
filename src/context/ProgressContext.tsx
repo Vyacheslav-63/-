@@ -20,6 +20,10 @@ export interface ProgressState {
   reminderSettings: ReminderSettings;
   soundEnabled: boolean;
   slowSpeech: boolean;
+  unlockedDictLevel: number;
+  activeDictLevel: number;
+  completedDictLevels: number[];
+  masteredDictCardIds: string[];
 }
 
 const DEFAULT_SETTINGS: ReminderSettings = {
@@ -45,6 +49,10 @@ const INITIAL_STATE: ProgressState = {
   reminderSettings: DEFAULT_SETTINGS,
   soundEnabled: true,
   slowSpeech: false,
+  unlockedDictLevel: 1,
+  activeDictLevel: 1,
+  completedDictLevels: [],
+  masteredDictCardIds: [],
 };
 
 interface ProgressContextType {
@@ -58,6 +66,9 @@ interface ProgressContextType {
   updateReminderSettings: (settings: Partial<ReminderSettings>) => void;
   reviewFlashcard: (cardId: string, rating: 'again' | 'hard' | 'good' | 'easy') => void;
   addCustomFlashcard: (phraseEn: string, phraseRu: string, phoneticRu?: string, contextRu?: string) => void;
+  selectDictLevel: (level: number) => void;
+  unlockNextDictLevel: (nextLevel: number) => void;
+  resetDictLevelProgress: (level: number) => void;
   toggleSlowSpeech: () => void;
   toggleSound: () => void;
   leaderboard: LeaderboardUser[];
@@ -73,8 +84,14 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        const initialMap = new Map(INITIAL_FLASHCARDS.map((fc) => [fc.id, fc]));
         const savedFlashcards: FlashcardItem[] = Array.isArray(parsed.flashcards)
-          ? parsed.flashcards
+          ? parsed.flashcards.map((c: FlashcardItem) => {
+              const base = initialMap.get(c.id);
+              return base
+                ? { ...c, dictLevel: base.dictLevel, topicRu: base.topicRu }
+                : c;
+            })
           : [];
         const savedCardIds = new Set(savedFlashcards.map((c) => c.id));
         const mergedFlashcards = [
@@ -82,9 +99,26 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
           ...INITIAL_FLASHCARDS.filter((fc) => !savedCardIds.has(fc.id)),
         ];
 
+        const unlockedDictLevel =
+          typeof parsed.unlockedDictLevel === 'number' && parsed.unlockedDictLevel >= 1
+            ? Math.min(10, parsed.unlockedDictLevel)
+            : 1;
+        const activeDictLevel =
+          typeof parsed.activeDictLevel === 'number' && parsed.activeDictLevel >= 1
+            ? Math.min(unlockedDictLevel, parsed.activeDictLevel)
+            : 1;
+
         return {
           ...INITIAL_STATE,
           ...parsed,
+          unlockedDictLevel,
+          activeDictLevel,
+          completedDictLevels: Array.isArray(parsed.completedDictLevels)
+            ? parsed.completedDictLevels
+            : [],
+          masteredDictCardIds: Array.isArray(parsed.masteredDictCardIds)
+            ? parsed.masteredDictCardIds
+            : [],
           flashcards: mergedFlashcards,
           achievements: INITIAL_ACHIEVEMENTS.map((initialAch) => {
             const savedAch = parsed.achievements?.find((a: Achievement) => a.id === initialAch.id);
@@ -337,6 +371,25 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
         };
       });
 
+      // Update mastered list for themed dictionary levels
+      const targetCard = prev.flashcards.find((c) => c.id === cardId);
+      const nextMasteredSet = new Set(prev.masteredDictCardIds);
+      if (rating === 'again') {
+        nextMasteredSet.delete(cardId);
+      } else {
+        nextMasteredSet.add(cardId);
+      }
+
+      const nextCompletedLevelsSet = new Set(prev.completedDictLevels);
+      if (targetCard?.dictLevel) {
+        const levelCards = updatedCards.filter((c) => c.dictLevel === targetCard.dictLevel);
+        const allMastered =
+          levelCards.length > 0 && levelCards.every((c) => nextMasteredSet.has(c.id));
+        if (allMastered) {
+          nextCompletedLevelsSet.add(targetCard.dictLevel);
+        }
+      }
+
       // Update flashcards quest
       const updatedQuests = prev.dailyQuests.map((q) => {
         if (q.id === 'quest-cards') {
@@ -349,12 +402,59 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
       return {
         ...prev,
         flashcards: updatedCards,
+        masteredDictCardIds: Array.from(nextMasteredSet),
+        completedDictLevels: Array.from(nextCompletedLevelsSet).sort((a, b) => a - b),
         dailyQuests: updatedQuests,
       };
     });
 
     addXP(10);
     incrementAchievement('vocab-champ', 1);
+  };
+
+  const selectDictLevel = (level: number) => {
+    setState((prev) => {
+      if (level < 1 || level > prev.unlockedDictLevel) return prev;
+      return {
+        ...prev,
+        activeDictLevel: level,
+      };
+    });
+  };
+
+  const unlockNextDictLevel = (nextLevel: number) => {
+    if (nextLevel < 2 || nextLevel > 10) return;
+    const isNewUnlock = nextLevel > state.unlockedDictLevel;
+    setState((prev) => {
+      const nextUnlocked = Math.min(10, Math.max(prev.unlockedDictLevel, nextLevel));
+      return {
+        ...prev,
+        unlockedDictLevel: nextUnlocked,
+        activeDictLevel: nextLevel,
+      };
+    });
+    if (isNewUnlock) {
+      addXP(25);
+      addGems(10);
+      sfx.playLevelUp();
+      confetti({
+        particleCount: 70,
+        spread: 75,
+        origin: { y: 0.6 },
+      });
+    }
+  };
+
+  const resetDictLevelProgress = (level: number) => {
+    setState((prev) => {
+      const levelCardIds = new Set(
+        prev.flashcards.filter((c) => c.dictLevel === level).map((c) => c.id)
+      );
+      return {
+        ...prev,
+        masteredDictCardIds: prev.masteredDictCardIds.filter((id) => !levelCardIds.has(id)),
+      };
+    });
   };
 
   const addCustomFlashcard = (
@@ -419,6 +519,9 @@ export const ProgressProvider: React.FC<{ children: ReactNode }> = ({ children }
         updateReminderSettings,
         reviewFlashcard,
         addCustomFlashcard,
+        selectDictLevel,
+        unlockNextDictLevel,
+        resetDictLevelProgress,
         toggleSlowSpeech,
         toggleSound,
         leaderboard,

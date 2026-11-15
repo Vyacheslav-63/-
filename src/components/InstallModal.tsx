@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Download, X, Smartphone, Apple, Check, Share, PlusSquare, Sparkles, ExternalLink } from 'lucide-react';
+import {
+  Download,
+  X,
+  Smartphone,
+  Apple,
+  Check,
+  Share,
+  PlusSquare,
+  Sparkles,
+  AlertTriangle,
+  Copy,
+} from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { sfx } from '../utils/audio';
 
@@ -9,11 +20,21 @@ interface InstallModalProps {
 }
 
 export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) => {
-  const { isInstallable, isInstalled, isIOS, isAndroid, install } = usePWAInstall();
+  const {
+    isInstallable,
+    isIOS,
+    isAndroid,
+    isInAppBrowser,
+    isInIframe,
+    install,
+  } = usePWAInstall();
   const [activeTab, setActiveTab] = useState<'android' | 'ios'>(isIOS ? 'ios' : 'android');
   const [installSuccess, setInstallSuccess] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   if (!isOpen) return null;
+
+  const isFileProtocol = typeof window !== 'undefined' && window.location.protocol === 'file:';
 
   const handleInstallClick = async () => {
     sfx.playClick();
@@ -27,9 +48,23 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
     }
   };
 
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      sfx.playClick();
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
+    } catch {
+      // ignore clipboard errors
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-      <div 
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in"
+      onClick={onClose}
+    >
+      <div
         className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto space-y-5"
         onClick={(e) => e.stopPropagation()}
       >
@@ -56,6 +91,31 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Warning when opened inside iframe / Telegram / WhatsApp WebView */}
+        {(isInAppBrowser || isInIframe) && (
+          <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-950 space-y-2">
+            <div className="flex items-center gap-1.5 font-extrabold text-amber-900">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Откройте в обычном Google Chrome</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-amber-900">
+              {isInAppBrowser
+                ? 'Вы открыли приложение во встроенном браузере (Telegram, WhatsApp или др.) — внутри него Android не даёт установить приложение. Нажмите меню (⋮) в углу и выберите «Открыть в Chrome».'
+                : 'Приложение сейчас открыто в окне предпросмотра. Чтобы установить его на Android, откройте ссылку напрямую в новой вкладке Google Chrome на телефоне.'}
+            </p>
+            {!isFileProtocol && (
+              <button
+                type="button"
+                onClick={handleCopyUrl}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-[11px] font-bold text-amber-900 hover:bg-amber-100 transition-colors"
+              >
+                {copiedUrl ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedUrl ? 'Ссылка скопирована!' : 'Скопировать ссылку для Chrome'}</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Benefits badge */}
         <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 font-medium space-y-1.5">
@@ -89,7 +149,7 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
               ) : (
                 <>
                   <Download className="w-5 h-5 text-emerald-600" />
-                  <span>Скачать и установить в 1 клик</span>
+                  <span>Установить на телефон в 1 клик</span>
                 </>
               )}
             </button>
@@ -134,7 +194,7 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
           {activeTab === 'android' && (
             <div className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                Инструкция для Android (Google Chrome):
+                Как установить на Android (через Chrome):
               </h4>
 
               <div className="space-y-2.5 text-xs text-slate-700 font-medium">
@@ -143,7 +203,8 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
                     1
                   </span>
                   <p>
-                    В браузере <strong>Chrome</strong> нажмите на значок меню с тремя точками <strong className="text-slate-900">( ⋮ )</strong> в правом верхнем углу экрана.
+                    Откройте эту страницу именно в браузере <strong>Google Chrome</strong> (не через Telegram и не во встроенном окне).
+                    {isAndroid && isInAppBrowser ? ' Сейчас у вас открыт встроенный браузер.' : ''}
                   </p>
                 </div>
 
@@ -152,7 +213,7 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
                     2
                   </span>
                   <p>
-                    В открывшемся меню выберите пункт <strong>«Установить приложение»</strong> (или <strong>«Добавить на главный экран»</strong>).
+                    Нажмите на значок меню с тремя точками <strong className="text-slate-900">( ⋮ )</strong> в правом верхнем углу Chrome и выберите <strong>«Добавить на главный экран»</strong> или <strong>«Установить приложение»</strong>.
                   </p>
                 </div>
 
@@ -161,7 +222,7 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
                     3
                   </span>
                   <p>
-                    Подтвердите установку кнопкой <strong>«Установить»</strong>. Значок SpeakEasy появится на рабочем столе рядом с другими вашими приложениями!
+                    Если нужно установить как обычный <strong>.apk файл</strong> без браузера — загрузите проект на GitHub, где автоматически соберётся <strong>SpeakEasy-English.apk</strong> (вкладка <strong>Actions</strong>).
                   </p>
                 </div>
               </div>
@@ -222,6 +283,32 @@ export const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onClose }) =
             </div>
           )}
         </div>
+
+        {/* Direct Standalone Offline File Download */}
+        {!isFileProtocol && (
+          <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-extrabold text-indigo-950">
+                Автономная веб-версия (файл .html)
+              </span>
+              <span className="text-[10px] font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-full border border-indigo-200">
+                ~650 КБ
+              </span>
+            </div>
+            <p className="text-[11px] text-indigo-900/80 leading-relaxed">
+              Единый файл со всеми уроками, диалогами, тестами и 500 карточками (10 уровней по 50 фраз). На Android открывайте его через <strong>Chrome</strong> (не встроенный HTML-просмотрщик); для установки как обычного приложения нужен <strong>.apk</strong> из GitHub Actions.
+            </p>
+            <a
+              href="/download/SpeakEasy-English-Offline.html"
+              download="SpeakEasy-English-Offline.html"
+              onClick={() => sfx.playClick()}
+              className="btn-tactile-secondary w-full py-2.5 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Скачать автономный файл (.html)</span>
+            </a>
+          </div>
+        )}
 
         {/* Close / Got it button */}
         <button

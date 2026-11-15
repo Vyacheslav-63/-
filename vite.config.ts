@@ -11,6 +11,8 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: null,
+        useCredentials: true,
         includeAssets: [
           'favicon.ico',
           'apple-touch-icon.png',
@@ -21,6 +23,7 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: '/',
+          lang: 'ru',
           name: 'SpeakEasy English — Разговорный английский',
           short_name: 'SpeakEasy',
           description: 'Игровой тренажер английского языка для русскоязычных: диалоги, шаблоны речи, тесты и повторение.',
@@ -57,7 +60,7 @@ export default defineConfig(() => {
           clientsClaim: true,
           skipWaiting: true,
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api\//],
+          navigateFallbackDenylist: [/^\/api\//, /^\/download\//],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -91,7 +94,7 @@ export default defineConfig(() => {
         },
         devOptions: {
           enabled: true,
-          type: 'module',
+          type: 'classic',
         },
       }),
     ],
@@ -101,6 +104,7 @@ export default defineConfig(() => {
       },
     },
     server: {
+      allowedHosts: true as const,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

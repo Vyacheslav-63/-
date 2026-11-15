@@ -5,29 +5,50 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
+function getInitialEnv() {
+  if (typeof window === 'undefined') {
+    return {
+      isStandalone: false,
+      isIOS: false,
+      isAndroid: false,
+      isInAppBrowser: false,
+      isInIframe: false,
+    };
+  }
+  const ua = window.navigator.userAgent || '';
+  const lowerUa = ua.toLowerCase();
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  const isIOS = /iphone|ipad|ipod/.test(lowerUa);
+  const isAndroid = /android/.test(lowerUa);
+  const isInAppBrowser = /telegram|tgwebview|whatsapp|fban|fbav|instagram|vkclient|gsa\/|; wv\)/i.test(ua);
+  let isInIframe = false;
+  try {
+    isInIframe = window.self !== window.top;
+  } catch {
+    isInIframe = true;
+  }
+
+  return {
+    isStandalone,
+    isIOS,
+    isAndroid,
+    isInAppBrowser,
+    isInIframe,
+  };
+}
+
 export function usePWAInstall() {
+  const initial = getInitialEnv();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(initial.isStandalone);
+  const [isIOS] = useState(initial.isIOS);
+  const [isAndroid] = useState(initial.isAndroid);
+  const [isInAppBrowser] = useState(initial.isInAppBrowser);
+  const [isInIframe] = useState(initial.isInIframe);
 
   useEffect(() => {
-    // Detect standalone mode (already installed on phone or desktop)
-    const isStandalone =
-      typeof window !== 'undefined' &&
-      (window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as unknown as { standalone?: boolean }).standalone === true);
-    setIsInstalled(isStandalone);
-
-    if (typeof window !== 'undefined') {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
-      const isAndroidDevice = /android/.test(userAgent);
-
-      setIsIOS(isIOSDevice);
-      setIsAndroid(isAndroidDevice);
-    }
-
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -68,6 +89,8 @@ export function usePWAInstall() {
     isInstalled,
     isIOS,
     isAndroid,
+    isInAppBrowser,
+    isInIframe,
     install,
   };
 }

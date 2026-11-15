@@ -38,44 +38,69 @@ jobs:
           npm run build
           npm run build:portable
 
-      - name: Initialize Capacitor Android project
+      - name: Create Capacitor config & Android project
         run: |
-          npm install --no-save @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "SpeakEasy English" "com.speakeasy.english" --web-dir=dist
+          npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.speakeasy.english",
+            "appName": "SpeakEasy English",
+            "webDir": "dist",
+            "server": {
+              "androidScheme": "https"
+            }
+          }
+          EOF
           npx cap add android
+          npx cap sync android
 
-      - name: Configure Android permissions and app icons
+      - name: Configure Android permissions and adaptive app icons
         run: |
           node -e '
           const fs = require("fs");
           const manifestPath = "android/app/src/main/AndroidManifest.xml";
           let manifest = fs.readFileSync(manifestPath, "utf8");
-          if (!manifest.includes("android.permission.RECORD_AUDIO")) {
-            manifest = manifest.replace(
-              "<application",
-              "    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />\n    <application"
-            );
-            fs.writeFileSync(manifestPath, manifest);
+          const permissions = [
+            "android.permission.RECORD_AUDIO",
+            "android.permission.MODIFY_AUDIO_SETTINGS"
+          ];
+          for (const perm of permissions) {
+            if (!manifest.includes(perm)) {
+              manifest = manifest.replace(
+                "<application",
+                `    <uses-permission android:name="${perm}" />\n    <application`
+              );
+            }
           }
+          fs.writeFileSync(manifestPath, manifest);
           '
           node -e '
           const sharp = require("sharp");
           const fs = require("fs");
           const path = require("path");
-          const src = path.resolve("public/pwa-512x512.png");
+          const iconSrc = path.resolve("public/pwa-512x512.png");
+          const maskableSrc = path.resolve("public/pwa-maskable-512x512.png");
           const targets = [
-            ["mipmap-mdpi", 48],
-            ["mipmap-hdpi", 72],
-            ["mipmap-xhdpi", 96],
-            ["mipmap-xxhdpi", 144],
-            ["mipmap-xxxhdpi", 192],
+            ["mipmap-mdpi", 48, 108],
+            ["mipmap-hdpi", 72, 162],
+            ["mipmap-xhdpi", 96, 216],
+            ["mipmap-xxhdpi", 144, 324],
+            ["mipmap-xxxhdpi", 192, 432],
           ];
           (async () => {
-            for (const [dir, size] of targets) {
+            for (const [dir, size, fgSize] of targets) {
               const outDir = path.resolve("android/app/src/main/res", dir);
               if (!fs.existsSync(outDir)) continue;
-              await sharp(src).resize(size, size).png().toFile(path.join(outDir, "ic_launcher.png"));
-              await sharp(src).resize(size, size).png().toFile(path.join(outDir, "ic_launcher_round.png"));
+              await sharp(iconSrc).resize(size, size).png().toFile(path.join(outDir, "ic_launcher.png"));
+              await sharp(iconSrc).resize(size, size).png().toFile(path.join(outDir, "ic_launcher_round.png"));
+              await sharp(maskableSrc).resize(fgSize, fgSize).png().toFile(path.join(outDir, "ic_launcher_foreground.png"));
+            }
+            const bgPath = path.resolve("android/app/src/main/res/values/ic_launcher_background.xml");
+            if (fs.existsSync(bgPath)) {
+              fs.writeFileSync(
+                bgPath,
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n  <color name=\"ic_launcher_background\">#10B981</color>\n</resources>\n"
+              );
             }
           })();
           '
